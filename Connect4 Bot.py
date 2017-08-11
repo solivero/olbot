@@ -17,17 +17,66 @@ NUM_ROW = 6
 NUM_COL = 7
 
 DELAY = 0
-DEPTH = 5
+DEPTH = 4
 
 OPPONENT = -1
 ME = 1
 
+test_board_row = [
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 1, 1, 1, 0],
+]
+test_board_diag = [
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 1, 0],
+    [0, 0, 0, 0, 1, 0, 0],
+    [0, 0, 0, 1, 0, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0],
+]
+test_board_col = [
+    [0, 1, 0, 0, 0, 0, 0],
+    [0, 1, 0, 0, 0, 0, 0],
+    [0, 1, 0, 0, 0, 0, 0],
+    [0, 1, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0],
+]
+test_board_col2 = [
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0],
+]
+test_board_col_opp = [
+    [+1, +1, +0, +0, +0, +0, +0], 
+    [-1, +1, +0, +0, +0, +0, +0],
+    [+1, +1, -1, +0, +0, +0, +0],
+    [+1, -1, -1, +0, +0, +0, +0],
+    [-1, +1, -1, +0, +0, +0, +0],
+    [+1, -1, -1, -1, +1, +0, +0],
+]
+test_board_row_opp = [
+    [+1, +1, +0, +0, +0, +0, +0], 
+    [-1, +1, +0, +0, +0, +0, +0],
+    [+1, +1, -1, +0, +0, +0, +0],
+    [+1, -1, -1, -1, -1, +0, +0],
+    [-1, +1, -1, +0, +0, +0, +0],
+    [+1, -1, -1, -1, +1, +0, +0],
+]
+
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.connect((TCP_IP, TCP_PORT))
 #Checks messages until it receives "GameOver"
 #Always responds with a random move
 def main():
     #Connects using TCP to localIP and specified Port
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((TCP_IP, TCP_PORT))
     last_board = []
     for i in range(NUM_ROW):
         last_board.append([0] * NUM_COL)
@@ -46,12 +95,13 @@ def main():
         next_move = 3
         move_pos = get_move_position(last_board, board)
         if move_pos != None:
-            available_moves = get_available_moves(board)
             if move_pos[1] in available_moves: 
                 next_move = move_pos[1]
             else:
-                next_move = random.choice(available_moves)
+                #next_move = random.choice(available_moves)
+                next_move = available_moves[0]
 
+        available_moves = get_available_moves(board)
         next_move = minimax(board)
         #print("AFTER MINIMAX move is {}".format(next_move))
 
@@ -61,7 +111,7 @@ def main():
         msg = str(next_move)
 
         s.send(bytes(msg, "utf-8"))
-        #input()
+        input()
 
 #Closes connection when we are done
     s.close()
@@ -105,12 +155,20 @@ def has_won_row(board, PLAYER):
     return _has_won_line(board, NUM_ROW, NUM_COL, PLAYER)
 
 def has_won_col(board, PLAYER):
-    transpose = list(zip(*copy.copy(board)))
-    return _has_won_line(transpose, NUM_COL, NUM_ROW, PLAYER)
+    transpose = list(zip(*copy.deepcopy(board)))
+    for col in range(NUM_COL):
+        for row in range(NUM_ROW-3):
+            seq_len = 0
+            for i in range(4):
+                if board[row+i][col] == PLAYER:
+                    seq_len += 1
+            if seq_len == 4:
+                return True
+    return False
 
 def _has_won_line(board, num_rows, num_cols, PLAYER):
     for row in range(num_rows):
-        for col in range(num_cols-4):
+        for col in range(num_cols-3):
             seq_len = 0
             for i in range(4):
                 if board[row][col+i] == PLAYER:
@@ -162,47 +220,79 @@ def minimax(board):
     moves = get_available_moves(board)
     best_move = moves[0]
     best_score = float('-inf')
+    scores = []
     for move in moves:
-        #print("CHECKING MOVES MINIMAX")
+        #print("CHECKING MOVE {}".format(move))
         new_board = simulate_move(board, move, ME)
+        #print_board(new_board)
         score = min_play(new_board, 1)
+        scores.append(score)
+        print("Score from min play move {} score {}".format(move, score))
         if score > best_score:
+            #print("Bettter score {}".format(score))
             best_move = move
             best_score = score
+        #elif score == best_score:
+            #best_move = random.choice((move, best_move))
+            #print("Same score, taking random move {}".format(best_move))
+        input()
+    #print("BEST MOVE CHOSEN {}".format(best_move))
+    print("MINIMAX scores {}".format(scores))
     return best_move
         
 
 def min_play(board, depth):
-    #print("MIN play")
+    #print("MIN play LOOK HERE")
     #print_board(board)
+    if has_won(board, OPPONENT):
+        print("MIN WON depth {}, return -1".format(depth))
+        return -1
     if has_won(board, ME):
-        #print("MIN WON")
-        return float('inf')
+        print("MAX WON depth {}, return 1".format(depth))
+        return 1
     if depth == DEPTH:
         return 0
     scores = []
     moves = get_available_moves(board)
     for move in moves:
-        #print("Min play move {}".format(move))
+        print("Min play move {}".format(move))
         next_board = simulate_move(board, move, OPPONENT)
-        scores.append(max_play(next_board, depth+1))
-    #print("Min play return score {}".format(min(scores)))
+        score = max_play(next_board, depth+1)
+        #print("MIN depth {} simulated move:".format(depth))
+        #print_board(next_board)
+        #print("Score {}".format(score))
+        scores.append(score)
+    print("Min play depth {} max scores {}".format(depth, scores))
     return min(scores)
 
 def max_play(board, depth):
     #print("MAX play")
     #print_board(board)
     if has_won(board, OPPONENT):
-        #print("MAX WON")
-        return float('-inf')
+        print("MIN WON depth {}, return -1".format(depth))
+        return -1
+    if has_won(board, ME):
+        print("MAX WON depth {}, return 1".format(depth))
+        return 1
     if depth == DEPTH:
         return 0
     scores = []
     moves = get_available_moves(board)
     for move in moves:
         next_board = simulate_move(board, move, ME)
-        scores.append(min_play(next_board, depth+1))
+        score = min_play(next_board, depth+1)
+        print("Max depth {} simulated move {} score {}:".format(depth, move, score))
+        #print_board(next_board)
+        #print("Score {}".format(score))
+        scores.append(score)
+    print("MAX play depth {} scores {}".format(depth, scores))
     return max(scores)
 
 if __name__ == '__main__':
+    assert has_won_row(test_board_row, ME)
+    assert has_won_col(test_board_col, ME)
+    assert has_won_col(test_board_col2, ME)
+    assert has_won_diag(test_board_diag, ME)
+    assert has_won_row(test_board_row_opp, OPPONENT)
+    assert has_won_col(test_board_col_opp, OPPONENT)
     main()
