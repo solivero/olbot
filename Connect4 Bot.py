@@ -227,7 +227,7 @@ def minimax(board):
         #print_board(new_board)
         score = min_play(new_board, 1)
         scores.append(score)
-        print("Score from min play move {} score {}".format(move, score))
+        #print("Score from min play move {} score {}".format(move, score))
         if score > best_score:
             #print("Bettter score {}".format(score))
             best_move = move
@@ -235,9 +235,9 @@ def minimax(board):
         #elif score == best_score:
             #best_move = random.choice((move, best_move))
             #print("Same score, taking random move {}".format(best_move))
-        input()
+        #input()
     #print("BEST MOVE CHOSEN {}".format(best_move))
-    print("MINIMAX scores {}".format(scores))
+    #print("MINIMAX scores {}".format(scores))
     return best_move
         
 
@@ -245,34 +245,34 @@ def min_play(board, depth):
     #print("MIN play LOOK HERE")
     #print_board(board)
     if has_won(board, OPPONENT):
-        print("MIN WON depth {}, return -1".format(depth))
+        #print("MIN WON depth {}, return -1".format(depth))
         return -1
     if has_won(board, ME):
-        print("MAX WON depth {}, return 1".format(depth))
+        #print("MAX WON depth {}, return 1".format(depth))
         return 1
     if depth == DEPTH:
         return 0
     scores = []
     moves = get_available_moves(board)
     for move in moves:
-        print("Min play move {}".format(move))
+        #print("Min play move {}".format(move))
         next_board = simulate_move(board, move, OPPONENT)
         score = max_play(next_board, depth+1)
         #print("MIN depth {} simulated move:".format(depth))
         #print_board(next_board)
         #print("Score {}".format(score))
         scores.append(score)
-    print("Min play depth {} max scores {}".format(depth, scores))
+    #print("Min play depth {} max scores {}".format(depth, scores))
     return min(scores)
 
 def max_play(board, depth):
     #print("MAX play")
     #print_board(board)
     if has_won(board, OPPONENT):
-        print("MIN WON depth {}, return -1".format(depth))
+        #print("MIN WON depth {}, return -1".format(depth))
         return -1
     if has_won(board, ME):
-        print("MAX WON depth {}, return 1".format(depth))
+        #print("MAX WON depth {}, return 1".format(depth))
         return 1
     if depth == DEPTH:
         return 0
@@ -281,11 +281,11 @@ def max_play(board, depth):
     for move in moves:
         next_board = simulate_move(board, move, ME)
         score = min_play(next_board, depth+1)
-        print("Max depth {} simulated move {} score {}:".format(depth, move, score))
+        #print("Max depth {} simulated move {} score {}:".format(depth, move, score))
         #print_board(next_board)
         #print("Score {}".format(score))
         scores.append(score)
-    print("MAX play depth {} scores {}".format(depth, scores))
+    #print("MAX play depth {} scores {}".format(depth, scores))
     return max(scores)
 
 if __name__ == '__main__':
